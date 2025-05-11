@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Para la Mejor Mamá del Mundo</title>
+
+<style>
+:root{
+  --bg:#fdfcf9;--paper:#fffefc;--ink:#555;--accent:#c6a98c;--accent-dark:#b0896e;
+  --btn-disabled:#c8c8c8;--success:#4caf50;--radius:1rem;--shadow:0 6px 18px rgba(0,0,0,.07);
+  font:16px/1.5 Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
+header{text-align:center;padding:2rem 1rem 1rem}
+header h1{font-size:clamp(1.8rem,4vw,2.8rem);color:var(--accent-dark)}
+header p{max-width:640px;margin:1rem auto 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+main{flex:1;width:min(95vw,960px);margin:0 auto 3rem;padding:0 1rem;display:flex;flex-direction:column;gap:2.5rem}
+.section-box{background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem;animation:fadeUp .8s ease .1s both}
+.timer-area{display:flex;flex-direction:column;align-items:center;gap:.8rem}
+#countdown{font-size:2rem;letter-spacing:2px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+button{cursor:pointer;background:var(--accent-dark);color:#fff;border:none;border-radius:2.5rem;padding:.7rem 2rem;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:1rem;transition:transform .2s,opacity .2s,background .3s}
+button:hover:not([disabled]){transform:translateY(-2px)}
+button:active:not([disabled]){transform:scale(.98)}
+button[disabled]{opacity:.45;background:var(--btn-disabled);cursor:default}
+.pulse{animation:pulse 1.5s ease-in-out infinite}
+.game-area{display:flex;flex-direction:column;align-items:center;gap:1rem}
+#stats{font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-weight:600}
+#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;width:100%;max-width:340px}
+.card{position:relative;width:100%;padding-top:100%;perspective:600px;cursor:pointer}
+.card-inner{position:absolute;inset:0;transition:transform .5s;transform-style:preserve-3d}
+.card.flipped .card-inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;font-size:1.8rem;border-radius:.6rem;user-select:none;backface-visibility:hidden}
+.front {
+  background: var(--accent-dark);
+  color: #fff;
+  font-size: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backface-visibility: hidden;
+  border-radius: .6rem;
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.1);
+}
+
+.back {
+  background: var(--paper);
+  transform: rotateY(180deg);
+  overflow: hidden;
+  border-radius: .6rem;
+  border: 3px solid var(--accent);
+  backface-visibility: hidden;
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.08);
+}
+#gameStatus{font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:1.1rem;font-weight:600;min-height:1.4em;text-align:center}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(120%);background:var(--success);color:#fff;padding:.75rem 1.5rem;border-radius:2rem;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;box-shadow:var(--shadow);opacity:0;transition:opacity .4s,transform .4s;pointer-events:none;z-index:9999}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.show-toast{opacity:1!important;transform:translateX(-50%) translateY(0)!important}
+@media(max-width:600px){#grid{max-width:300px}}
+
+#musicToggle{
+  position:fixed;bottom:90px;right:20px;width:52px;height:52px;border-radius:50%;
+  background:var(--accent-dark);color:#fff;display:flex;justify-content:center;align-items:center;font-size:1.4rem;box-shadow:var(--shadow);cursor:pointer;z-index:9998
+}
+#musicPlayer{
+  position:fixed;bottom:160px;right:20px;width:280px;background:var(--paper);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:1rem;display:flex;flex-direction:column;gap:.8rem;z-index:9998;
+  transform-origin:bottom right;transition:transform .3s,opacity .3s
+}
+#musicPlayer.hidden{transform:scale(0);opacity:0;pointer-events:none}
+#trackInfo{display:none}
+#musicControls{display:flex;justify-content:center;gap:1rem}
+.ctrl{background:var(--accent);color:#fff;border:none;width:44px;height:44px;border-radius:50%;font-size:1.2rem;display:flex;justify-content:center;align-items:center;cursor:pointer;transition:transform .2s}
+.ctrl:hover{transform:translateY(-2px)}
+</style>
+</head>
+
+<body>
+  <!-- ETAPA 1: Pantalla inicial de bienvenida -->
+<div id="introScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:2rem;">
+  <h2 style="font-size:2rem;color:var(--accent-dark);margin-bottom:1.2rem;">💌 Desbloquea tu carta</h2>
+  <p style="font-size:1.1rem;max-width:500px;">Solo las personas con el corazón más puro pueden acceder a este recuerdo tan especial.</p>
+  <button onclick="startExperience()" style="margin-top:2rem;">Comenzar</button>
+</div>
+<!-- [HEADER PRINCIPAL] -->
+<header>
+  <h1>Para la mejor Mamá del mundo ❤️👑</h1>  <!-- Título actualizado -->
+  <!-- ...el resto de tu <header>... -->
+</header>
+
+<main>
+  <section class="section-box timer-area">
+    <span id="countdown">12:00:00</span>
+    <button id="downloadBtn" disabled>Descargar tu Carta Especial 💌</button>
+  </section>
+
+  <section class="section-box game-area">
+    <h2 style="margin-bottom:.2rem; font-size:2rem; color:var(--accent-dark); font-weight:600;">
+  🌟 Recuerdos que viven en nuestros corazones 🌟
+    </h2>
+    <div id="grid"></div>
+    <div id="gameStatus"></div>
+  </section>
+</main>
+
+<div id="toast">¡Te amo Mamá! 💕</div>
+
+<script>
+// ETAPA 2: Función para iniciar la experiencia y ocultar intro
+// [START EXPERIENCE] — al hacer click en “Comenzar”
+function startExperience() {
+  // 1) Oculta la pantalla de bienvenida
+  document.getElementById('introScreen').style.display = 'none';
+  // 2) Oculta la cabecera principal
+  document.querySelector('header').style.display = 'none';
+  // 3) Oculta la sección de temporizador/descarga
+  document.querySelector('.timer-area').style.display = 'none';
+  // 4) Muestra únicamente la sección del puzzle con recuerdos
+  document.querySelector('.game-area').style.display = 'flex';
+}
+
+// ETAPA 6: Confirmación y cuenta regresiva
+function confirmPromise() {
+  document.getElementById('finalScreen').style.display = 'none';
+  document.getElementById('countdownScreen').style.display = 'flex';
+  let countdown = 5;
+  const countdownEl = document.getElementById('finalCountdown');
+  const interval = setInterval(() => {
+    countdown--;
+    countdownEl.textContent = countdown;
+    if (countdown <= 0) {
+      clearInterval(interval);
+      document.getElementById('countdownScreen').style.display = 'none';
+      document.getElementById('finalMemoryScreen').style.display = 'flex';
+    }
+  }, 1000);
+}
+
+// Contador 12h y descarga de PDF via fetch
+const STORAGE_KEY = 'letterCountdownDeadline';
+const INITIAL_MS   = 12 * 60 * 60 * 1000;  // 12 horas
+let deadline = +localStorage.getItem(STORAGE_KEY) || 0;
+if (!deadline) {
+  deadline = Date.now() + INITIAL_MS;
+  localStorage.setItem(STORAGE_KEY, deadline);
+}
+const btn = document.getElementById('downloadBtn'),
+      countdownEl = document.getElementById('countdown');
+
+function renderTime() {
+  const diff = Math.max(0, deadline - Date.now());
+  const sec = Math.floor(diff / 1000),
+        h   = String(Math.floor(sec / 3600)).padStart(2, '0'),
+        m   = String(Math.floor((sec % 3600) / 60)).padStart(2, '0'),
+        s   = String(sec % 60).padStart(2, '0');
+  countdownEl.textContent = `${h}:${m}:${s}`;
+  if (diff <= 0) enableDownload();
+}
+function enableDownload() {
+  btn.disabled = false;
+  btn.classList.add('pulse');
+}
+renderTime();
+const timer = setInterval(() => {
+  renderTime();
+  if (Date.now() >= deadline) clearInterval(timer);
+}, 1000);
+
+btn.addEventListener('click', () => {
+  fetch('El Amor de Dios a Través de Ti, Mamá.pdf')
+    .then(response => {
+      if (!response.ok) throw new Error('Error al cargar el PDF');
+      return response.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'El Amor de Dios a Través de Ti, Mamá.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast();
+    })
+    .catch(error => {
+      console.error('Error de descarga:', error);
+      alert('No se pudo descargar la carta. Por favor, inténtalo de nuevo.');
+    });
+});
+
+function showToast() {
+  const toast = document.getElementById('toast');
+  toast.classList.add('show-toast');
+  setTimeout(() => toast.classList.remove('show-toast'), 4000);
+}
+
+function finalDownload() {
+  const a = document.createElement('a');
+  a.href = 'El Amor de Dios a Través de Ti, Mamá.pdf';
+  a.download = 'El Amor de Dios a Través de Ti, Mamá.pdf';
+  a.click();
+  showToast();
+}
+
+function subtractMinutes(min) {
+  deadline = Math.max(Date.now(), deadline - min * 60000);
+  localStorage.setItem(STORAGE_KEY, deadline);
+  renderTime();
+}
+
+// Minijuego Memory
+// Minijuego Memory — FOTOS PERSONALIZADAS
+const allImages = [
+  'img/memorias/foto1.jpg', 'img/memorias/foto2.jpg', 'img/memorias/foto3.jpg', 'img/memorias/foto4.jpg',
+  'img/memorias/foto5.jpg', 'img/memorias/foto6.jpg', 'img/memorias/foto7.jpg', 'img/memorias/foto8.jpg'
+];
+let level=1, rings=0, first=null, second=null, lock=false, matched=0, moves=0;
+const grid = document.getElementById('grid'),
+      stats = document.getElementById('stats'),
+      statusTxt = document.getElementById('gameStatus');
+
+function initLevel() {
+  grid.innerHTML = '';
+  [first, second, lock, matched, moves] = [null, null, false, 0, 0];
+  statusTxt.textContent = '';
+  const deck = [...allImages, ...allImages].sort(() => Math.random() - .5);
+  deck.forEach(icon => {
+    const c = document.createElement('div');
+    c.className = 'card';
+    c.innerHTML = `<div class="card-inner">
+                 <div class="face front">?</div>
+                 <div class="face back"><img src="${icon}" alt="Foto" style="width:100%;height:100%;object-fit:cover;border-radius:.6rem;"></div>
+                 </div>`;
+    c.dataset.icon = icon;
+    grid.appendChild(c);
+  });
+  updateStats();
+}
+
+grid.addEventListener('click', e => {
+  const card = e.target.closest('.card');
+  if (!card || lock || card.classList.contains('flipped')) return;
+  flip(card);
+  if (!first) { first = card; return; }
+  second = card; lock = true; moves++;
+  if (first.dataset.icon === second.dataset.icon) {
+    matched += 2;
+    resetTurn();
+    if (matched === grid.children.length) finishLevel();
+  } else {
+    setTimeout(() => {
+      flip(first, false);
+      flip(second, false);
+      resetTurn();
+    }, 800);
+  }
+});
+
+const flip = (c, s = true) => c.classList.toggle('flipped', s);
+const resetTurn = () => [first, second, lock] = [null, null, false];
+
+// ETAPA 5: Mostrar pantalla final tras terminar juego
+function finishLevel() {
+  rings += 10;
+  statusTxt.textContent = `¡Nivel ${level} completado en ${moves} movimientos! 🌟 ERES LA MEJOR 💖`;
+  subtractMinutes(5);
+  // Esperar 2s y mostrar pantalla de promesa
+  setTimeout(() => {
+    document.querySelector('main').style.display = 'none';
+    document.getElementById('finalScreen').style.display = 'flex';
+  }, 2000);
+}
+
+function updateStats() {
+  stats.textContent = `Nivel ${level} — Anillos: ${rings}`;
+}
+
+initLevel();
+</script>
+
+<!-- ETAPA 3: Confirmación previa a la descarga -->
+<div id="finalScreen" style="display:none;position:fixed;inset:0;background:var(--paper);z-index:9999;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;">
+  <h2 style="font-size:1.8rem;color:var(--accent-dark);margin-bottom:1rem;">📜 Prométeme algo...</h2>
+  <p style="font-size:1.1rem;max-width:500px;">Prométeme que solo tú verás y leerás esta carta.</p>
+  <button onclick="confirmPromise()" style="margin-top:2rem;">Lo prometo 💖</button>
+</div>
+<!-- ETAPA 4: Cuenta regresiva final -->
+<div id="countdownScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;">
+  <h2 style="font-size:2rem;color:var(--accent-dark);margin-bottom:1rem;">⏳ Preparando tu carta...</h2>
+  <div id="finalCountdown" style="font-size:3rem;">5</div>
+</div>
+<!-- ETAPA 7: Pantalla de cierre con recuerdos -->
+<div id="finalMemoryScreen" style="display:none;position:fixed;inset:0;background:var(--paper);z-index:9999;overflow-y:auto;flex-direction:column;align-items:center;text-align:center;padding:3rem 1rem;">
+  <h2 style="font-size:2rem;color:var(--accent-dark);margin-bottom:1.2rem;">💖 Nuestros Recuerdos Más Lindos</h2>
+  <p style="max-width:600px;margin-bottom:2rem;font-size:1.1rem;">Gracias por llegar hasta aquí. Este viaje fue hecho con amor, para recordarte lo especial que eres. Cada momento guardado en esta carta es único, como tú.</p>
+  
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;max-width:800px;margin-bottom:2.5rem;">
+    <img src="img/memorias/foto1.jpg" alt="Recuerdo" style="width:100%;border-radius:1rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+    <img src="img/memorias/foto3.jpg" alt="Recuerdo" style="width:100%;border-radius:1rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+    <img src="img/memorias/foto5.jpg" alt="Recuerdo" style="width:100%;border-radius:1rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+    <img src="img/memorias/foto7.jpg" alt="Recuerdo" style="width:100%;border-radius:1rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+  </div>
+
+  <button onclick="finalDownload()" style="font-size:1.1rem;background:var(--accent-dark);padding:.8rem 2.2rem;border-radius:2.5rem;">
+    Descargar tu Carta Especial 💌
+  </button>
+</div>
+</body>
+</html>
